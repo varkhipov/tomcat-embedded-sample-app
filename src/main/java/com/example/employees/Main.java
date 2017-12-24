@@ -1,8 +1,10 @@
 package com.example.employees;
 
+import com.example.aop.spring.SpringAopConfig;
 import org.apache.catalina.startup.Tomcat;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import java.util.Optional;
+import java.util.Arrays;
 
 /**
  * From:
@@ -14,13 +16,42 @@ import java.util.Optional;
  * 'suspend=n' is used for not waiting debugger connection to start app
  */
 public class Main {
-    public static final Optional<String> port = Optional.ofNullable(System.getenv("PORT"));
 
     public static void main(String[] args) throws Exception {
-        String contextPath = "/";
+        // Set custom uncaught exception handler and shutdown hook. Just to say goodbye.
+        Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+            System.err.println("\n\nthread.getStackTrace():\n" + Arrays.toString(thread.getStackTrace()));
+            System.err.println("\n\nexception:\n" + ex.toString());
+            System.err.println("\n\nGoodbye from Default Uncaught Exception Handler!\n\n");
+        });
+
+        // FYI: Shutdown Hook is called AFTER Default Uncaught Exception Handler
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.err.println("\n\nGoodbye from Shutdown Hook!\n\n");
+        }));
+
+        // Init Spring context
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.register(SpringAopConfig.class);
+        context.refresh();
+        // context.refresh(); --> use to get uncaught exception because multiple refresh is not allowed
+
+        // Prepare and run Tomcat instance
+        // TODO: https://devcenter.heroku.com/articles/create-a-java-web-application-using-embedded-tomcat
+        // TODO: Try with tomcat 8: https://github.com/heroku/devcenter-embedded-tomcat/blob/master/src/main/java/launch/Main.java
+        // <!--<tomcat.version>8.5.2</tomcat.version>-->
+        String contextPath = "";
         String appBase = ".";
         Tomcat tomcat = new Tomcat();
-        tomcat.setPort(Integer.valueOf(port.orElse("8080") ));
+
+        // The port that we should run on can be set into an environment variable
+        // Look for that variable and default to 8080 if it isn't there.
+        String webPort = System.getenv("PORT");
+        if (webPort == null || webPort.isEmpty()) {
+            webPort = "8080";
+        }
+        tomcat.setPort(Integer.valueOf(webPort));
+
         tomcat.getHost().setAppBase(appBase);
         tomcat.addWebapp(contextPath, appBase);
 

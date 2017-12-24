@@ -1,5 +1,7 @@
 package com.example.employees;
 
+import com.example.aop.aspectj.AspectJLoggingAnnotation;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -11,8 +13,14 @@ public class EmployeeService {
 
     List<Employee> employeeList = EmployeeList.getInstance();
 
+    @AspectJLoggingAnnotation
     public List<Employee> getAllEmployees() {
+        test();
         return employeeList;
+    }
+
+    public void test() {
+        System.out.println("test() invoked");
     }
 
     public List<Employee> searchEmployeesByName(String name) {
@@ -64,11 +72,7 @@ public class EmployeeService {
 
     public boolean deleteEmployee(long id) {
         Predicate<Employee> employee = e -> e.getId() == id;
-        if (employeeList.removeIf(employee)) {
-            return true;
-        } else {
-            return false;
-        }
+        return employeeList.removeIf(employee);
     }
 
 }
