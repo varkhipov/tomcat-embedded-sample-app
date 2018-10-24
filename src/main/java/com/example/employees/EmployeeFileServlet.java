@@ -1,4 +1,6 @@
-package com.example;
+package com.example.employees;
+
+import com.example.aop.aspectj.AspectJLoggingAnnotation;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,10 +14,11 @@ import java.io.OutputStream;
 import static com.example.Constants.*;
 
 @WebServlet(
-    name = "FileServlet",
+    name = "EmployeeFileServlet",
     urlPatterns = {"/file"}
 )
-public class FileServlet extends HttpServlet {
+@AspectJLoggingAnnotation
+public class EmployeeFileServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
